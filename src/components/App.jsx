@@ -1,4 +1,4 @@
-import {useState, useEffect} from "react"
+import React, {useState, useEffect} from "react"
 import Searchbar from "./Searchbar/Searchbar"
 import {LoaderIcon} from "./Loader/Loader"
 import ImagesGallery from "./ImagesGallery/ImagesGallery"
@@ -10,62 +10,44 @@ import {ToastContainer, toast} from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import {Container, Error, ErrorText} from "./App.styled"
 
-const App = () => {
+export default function App() {
   const [searchName, setSearchName] = useState("")
-  const [largeImageURL, setLargeImageUrl] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [showModal, setShowModal] = useState(false)
-  const [page, setPage] = useState("")
-  const [error, setError] = useState(null)
+  const [page, setPage] = useState(1)
   const [gallery, setGallery] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [showModal, setShowModal] = useState(false)
+  const [largeImageURL, setLargeImgURL] = useState("")
 
-  // state = {
-  //   searchName: "",
-  //   gallery: [],
-  //   largeImageURL: "",
-  //   isLoading: false,
-  //   showModal: false,
-  //   page: "",
-  //   error: null
-  // }
-
-  // componentDidUpdate(prevProps, prevState) {
-  //   if (
-  //     prevState.searchName !== this.state.searchName ||
-  //     prevState.page !== this.state.page
-  //   ) {
-  //     this.fetchImages()
-  //   }
-  // }
-
-  const fetchImages = async () => {
-    if (searchName.trim() === "") {
-      setGallery([])
-      return toast.error(
-        "Oh, we have nothing to search. Please enter the keyword to find images"
-      )
-    }
-
-    try {
-      setIsLoading(true)
-      const response = await getAllImages(searchName, page)
-      const gallery = response.data.hits
-
-      if (gallery.length === 0 && page === 1) {
-       setGallery([])
-        return toast.info(`No images found for ${searchName}`)
-      } else {
-        this.setState(prevState => ({
-          gallery: page === 1 ? gallery : [...prevState.gallery, ...gallery],
-          error: null
-        }))
+  useEffect(
+    () => {
+      if (searchName.trim() === "") {
+        return
       }
-    } catch (error) {
-      setError({error})
-    } finally {
-      setIsLoading(false)
-    }
-  }
+
+      const fetchImages = async () => {
+        try {
+          setIsLoading(true)
+          const response = await getAllImages(searchName, page)
+          const newGallery = response.data.hits
+
+          if (newGallery.length === 0 && page === 1) {
+            setGallery([])
+            return toast.info(`No images found for ${searchName}`)
+          } else {
+            setGallery(prevState => [...prevState, ...newGallery])
+            setError(null)
+          }
+        } catch (error) {
+          setError(error)
+        } finally {
+          setIsLoading(false)
+        }
+      }
+      fetchImages()
+    },
+    [page, searchName]
+  )
 
   const handleSubmit = event => {
     event.preventDefault()
@@ -73,48 +55,36 @@ const App = () => {
 
     if (searchName === imgName) {
       return toast.info(`Oh, you already watching ${searchName} images`)
+    } else {
+      setSearchName(imgName)
+      setPage(1)
+      setGallery([])
+      setError(null)
     }
-    setSearchName(imgName)
-    setPage(1)
   }
 
-  const loadMore = () => setPage(prevState => prevState.page + 1)
-  
-
-  const openModal = largeImageURL => {
-    setShowModal(true)
-    setLargeImageUrl(largeImageURL)
+  const toggleModal = largeImageURL => {
+    setShowModal(!showModal)
+    setLargeImgURL(largeImageURL)
   }
 
-  const closeModal = () => setShowModal(false)
-  
+  const loadMore = () => setPage(prevState => prevState + 1)
 
-  const openLoading = () => setIsLoading(true)
-  const closeLoading = () => setIsLoading(false)
-
-  const showLoadMoreButton = gallery.length > 0
+  const showLoadMoreButton = gallery.length > 0 && !isLoading
 
   return (
     <Container>
       <Searchbar onSubmit={handleSubmit} />
-      {isLoading && <LoaderIcon openLoading={openLoading} closeLoading={closeLoading } />}
+      {isLoading && <LoaderIcon />}
       {error &&
         <Error>
           <ErrorText>
             "{error}"
           </ErrorText>
         </Error>}
-      <ImagesGallery
-        gallery={gallery}
-        openModal={openModal}
-        closeModal={closeModal}
-      />
+      <ImagesGallery gallery={gallery} toggleModal={toggleModal} />
       {showModal &&
-        <Modal
-          largeImageURL={largeImageURL}
-          openModal={openModal}
-          closeModal={closeModal}
-        />}
+        <Modal largeImageURL={largeImageURL} toggleModal={toggleModal} />}
       {showLoadMoreButton && <Button onClick={loadMore} />}
       <Credits />
       <ToastContainer autoClose={3000} pauseOnHover={false} theme="colored" />
@@ -122,4 +92,3 @@ const App = () => {
   )
 }
 
-export default App
