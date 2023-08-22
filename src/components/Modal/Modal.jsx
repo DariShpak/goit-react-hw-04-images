@@ -1,42 +1,39 @@
-import React, {useState, useEffect} from "react"
+import React, {useEffect} from "react"
 import PropTypes from "prop-types"
 import {ModalWindow, Overlay, Img} from "./Modal.styled"
 
-const Modal = (largeImageURL, showModal, closeModal) => {
+const Modal = ({toggleModal, largeImageURL}) => {
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown)
 
-  // componentDidMount() {
-  //   window.addEventListener("keydown", handleKeyDown)
-  // }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [])
 
-  // componentWillUnmount() {
-  //   window.removeEventListener("keydown", handleKeyDown)
-  // }
-
- const handleKeyDown = e => {
+  const handleKeyDown = e => {
     if (e.code === "Escape") {
-closeModal()
+      toggleModal()
     }
   }
 
- const handleBackdropClick = e => {
+  const handleBackdropClick = e => {
     if (e.currentTarget === e.target) {
-     closeModal()
+      toggleModal()
     }
   }
 
-    return (
-      <Overlay onClick={handleBackdropClick}>
-        <ModalWindow>
-          <Img src={largeImageURL} width="800" height="500" />
-        </ModalWindow>
-      </Overlay>
-    )
-  }
-
+  return (
+    <Overlay onClick={handleBackdropClick}>
+      <ModalWindow>
+        <Img src={largeImageURL} width="800" height="500" />
+      </ModalWindow>
+    </Overlay>
+  )
+}
 
 Modal.propTypes = {
-  showModal: PropTypes.func.isRequired,
-  closeModal: PropTypes.func.isRequired,
+  toggleModal: PropTypes.func.isRequired,
   largeImageURL: PropTypes.string.isRequired
 }
 
