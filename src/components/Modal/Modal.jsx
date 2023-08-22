@@ -3,19 +3,22 @@ import PropTypes from "prop-types"
 import {ModalWindow, Overlay, Img} from "./Modal.styled"
 
 const Modal = ({toggleModal, largeImageURL}) => {
-  useEffect(() => {
-    window.addEventListener("keydown", handleKeyDown)
+  useEffect(
+    () => {
+      const handleKeyDown = e => {
+        if (e.code === "Escape") {
+          toggleModal()
+        }
+      }
 
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown)
-    }
-  }, [])
+      window.addEventListener("keydown", handleKeyDown)
 
-  const handleKeyDown = e => {
-    if (e.code === "Escape") {
-      toggleModal()
-    }
-  }
+      return () => {
+        window.removeEventListener("keydown", handleKeyDown)
+      }
+    },
+    [toggleModal]
+  )
 
   const handleBackdropClick = e => {
     if (e.currentTarget === e.target) {
