@@ -28,6 +28,15 @@ export default function App() {
       const fetchImages = async () => {
         try {
           setIsLoading(true)
+
+          if (searchName.trim() === "") {
+            setGallery([])
+            setIsLoading(false)
+            return toast.error(
+              "Oh, we have nothing to search. Please enter the keyword to find images"
+            )
+          }
+
           const response = await getAllImages(searchName, page)
           const newGallery = response.data.hits
 
@@ -52,6 +61,12 @@ export default function App() {
   const handleSubmit = event => {
     event.preventDefault()
     const imgName = event.target[0].value.toLowerCase()
+    if (imgName.trim() === "") {
+      setGallery([])
+      return toast.error(
+        "Oh, we have nothing to search. Please enter the keyword to find images"
+      )
+    }
 
     if (searchName === imgName) {
       return toast.info(`Oh, you already watching ${searchName} images`)
@@ -91,4 +106,3 @@ export default function App() {
     </Container>
   )
 }
-
